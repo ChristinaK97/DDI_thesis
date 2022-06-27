@@ -41,11 +41,11 @@ class GNN_Model(nn.Module):
 
         z = self.encoder(x, edge_index)
 
-        y_hat = self.decoder(z, nodes_to_predict)
+        y_hat = self.prediction_head(z, nodes_to_predict)
 
         return y_hat
 
-    def decoder(self, z, nodes_to_predict):
+    def prediction_head(self, z, nodes_to_predict):
 
         y_hat = self.W(z[nodes_to_predict])
 
