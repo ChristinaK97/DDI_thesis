@@ -4,7 +4,7 @@
 
 # Το path όπου έχει τοποθετηθεί ο φάκελος του project. Ο καθορισμός του απαιτείται.
 # Προσοχή: Να καταλήγει σε /
-PROJECT_PATH = 'C:/Users/xristina/Desktop/progr/Python/DDI/'
+PROJECT_PATH = 'C:/Users/xristina/Desktop/progr/Python/DDI_thesis/'
 
 # Αν θα ξαναφτιάξει τα απαραίτητα αρχεία για τη διαδικασία εύρεσης συνωνύμων -> True
 # (σημειώνεται ότι η διαδικασία είναι χρονοβόρα λόγω κλήσεων σε API)
