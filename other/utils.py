@@ -91,21 +91,7 @@ def check_sameAs_files():
 def check_models():
     if not exists(PROJECT_PATH + '/data/models'):
         mkdir(PROJECT_PATH + '/data/models')
-        mkdir(PROJECT_PATH + '/data/models/bert')
-        raise_bert_warning('No saved pretrained model found.')
 
-
-def raise_bert_warning(message):
-    warnings.warn(
-        f'\n{message} A BERT model must be downloaded or an exception might be raised during training.\n'
-        'BioBERT can be downloaded from \n'
-        'https://drive.google.com/file/d/1egCaVAGqlXsgleqQzgLnKhfQJALDzwvi/view?usp=sharing \n'
-        'After downloading extract biobert_v1.1_pubmed.rar file to '
-        f'{PROJECT_PATH}data/models/bert'
-        '\n (as set in the config.py file).\n'
-        'Alternatively, a BERT model (pytorch_model.bin, config.json, vocab.txt) can be downloaded from HuggingFace \n'
-        f'and placed in {PROJECT_PATH}data/models/bert/BERT_MODEL_FOLDER.\n'
-        f'BERT_MODEL_FOLDER value can be set in config.py. (Current value:{BERT_MODEL_FOLDER})')
 
 # ===================================================================================
 def set_seed():

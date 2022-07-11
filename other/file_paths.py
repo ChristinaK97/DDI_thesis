@@ -1,4 +1,4 @@
-from config import PROJECT_PATH, BERT_MODEL_FOLDER
+from config import PROJECT_PATH, BERT_MODEL_NAME
 # ==================================================================================
 
 # raw collection files
@@ -35,6 +35,6 @@ def graph_dataset(train):
     return PROJECT_PATH + 'data/graph_dataset/' + ('train' if train else 'test')
 
 # bert model path
-bert_path = PROJECT_PATH + f'data/models/bert/{BERT_MODEL_FOLDER}/'
+bert_path = PROJECT_PATH + f'data/models/bert/{BERT_MODEL_NAME}/'
 
 

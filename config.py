@@ -33,10 +33,7 @@ NEO4J_TEST_DB = 'ddidb.test'
 
 # ============================== Εκπαίδευση μοντέλου ===================================
 
-# Ο φάκελος του μοντέλου BERT που θα χρησιμοποιηθεί. Πλήρες path είναι
-# PROJECT_PATH/data/models/bert/BERT_MODEL_FOLDER
-# Πρέπει να περιέχει τα αρχεία: pytorch_model.bin, config.json, vocab.txt
-BERT_MODEL_FOLDER = 'biobert_v1.1_pubmed'
+BERT_MODEL_NAME = 'monologg/biobert_v1.1_pubmed'
 
 # ----------------------------- Παράμετροι εκπαίδευσης ---------------------------------
 

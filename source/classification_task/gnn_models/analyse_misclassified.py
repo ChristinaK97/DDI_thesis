@@ -55,9 +55,8 @@ def print_(result, n4j):
     # ============================================================================================================
     if not exists(PROJECT_PATH + 'data/models/sentences.pkl'):
         from source.classification_task.dataset_preparation.bert_dataset import Bert_Dataset, SENTENCE_EMB
-        from other.file_paths import bert_path
         sentences_init = n4j.run_query(n4j.q_collect_sentences())
-        Bert_Dataset(sentences_init=sentences_init, bert_path=bert_path, embeddings_mode=SENTENCE_EMB, run_for_bert=False)
+        Bert_Dataset(sentences_init=sentences_init, embeddings_mode=SENTENCE_EMB, run_for_bert=False)
 
     tokens = pickle.load(open(f"{PROJECT_PATH}data/models/sentences.pkl", "rb"))
     false_negative = result[result['y_hat'] == 'negative']

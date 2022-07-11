@@ -2,18 +2,19 @@ import pickle
 
 import pandas as pd
 import torch
-from config import PROJECT_PATH
-from pytorch_pretrained_bert import BertTokenizer
+from config import PROJECT_PATH, BERT_MODEL_NAME
+# from pytorch_pretrained_bert import BertTokenizer
+from transformers import BertTokenizer
 
 from other.CONSTANTS import *
 
 SENTENCE_EMB = 1
 TOKEN_EMB = 2
-SPECIAL_TOKENS = ['[CLS]', '[SEP]', '[PAD]']
+SPECIAL_TOKENS = ['[CLS]', '[SEP]']
 
 class Bert_Dataset():
 
-    def __init__(self, sentences_init, bert_path, embeddings_mode, run_for_bert=True):
+    def __init__(self, sentences_init, embeddings_mode, run_for_bert=True):
         """
         Τα δεδομένα (sentences) που θα χρησιμοποιήσει το biobert για να βγάλει τα embeddings των named entities.
 
@@ -22,7 +23,6 @@ class Bert_Dataset():
             start και end κάθε ne. Τρίτο όρισμα, ο identifier της πρότασης στον γράφο.
                  s    s[0]           s[1]  i                        i[start]                                            s[2]
             List[List[sentence_text, List[Dict{'drug':named_entity, 'start':char_Offset_start, 'end':char_Offset_end}], sent_id]
-        :param bert_path: Path του φακέλου όπου είναι αποθηκευμένο το μοντέλο biobert
         """
         """
         1. Το text των sentences. [1:-1] : αφαιρεί τα περιττά επιπλέον "" που επέστρεψε το neo4j
@@ -34,7 +34,8 @@ class Bert_Dataset():
         """
         self.embeddings_mode = embeddings_mode
 
-        self.tokenizer = BertTokenizer(vocab_file=bert_path + 'vocab.txt', do_lower_case=False)  # 1
+        # self.tokenizer = BertTokenizer(vocab_file=bert_path + 'vocab.txt', do_lower_case=False)  # 1
+        self.tokenizer  = BertTokenizer.from_pretrained(BERT_MODEL_NAME)                              # 1
         self.sentences = pd.Series([s[0][1:-1] for s in sentences_init])                         # 2
         self.sentences_identifiers = pd.Series([s[2] for s in sentences_init])                   # 3
         self.named_entities = [sorted(s[1], key=lambda i: i[START]) for s in sentences_init]     # 4
@@ -205,19 +206,22 @@ class Bert_Dataset():
         """
         """
         1. indexes όπου εμφανίζεται το κάθε named entity μέσα στη λίστα λέξεων
-        2. Για κάθε Token, List[indexes] :
-           3. Αν δεν είναι ένα από τα ειδικά bert tokens :
-              4. Κάνε την αντικατάσταση του με DRUGx (Σε κάθε θέση που το αποτελεί)
+        2. Απόρριψη των special tokens
+        3. Κρατάει τα φάρμακα της πρότασης και αναθέτει σε καθέ ένα έναν αριθμό x
+           Ταξινομεί ώστε κάθε φάρμακο να πάρει το ίδιο x σε κάθε εκτέλεση
+        4. Για κάθε Token, List[indexes] :
+           5. Κάνε την αντικατάσταση του με DRUGx (Σε κάθε θέση που το αποτελεί)
         """
         tokens_indexes = self.parse_sentence_ne(named_entities)        # 1
+        [tokens_indexes.pop(special_token) for special_token in SPECIAL_TOKENS]  # 2
+
         if self.embeddings_mode == TOKEN_EMB:
-            sentence_drugs = {self.token_to_drug.get(token, None) for token in tokens_indexes}
-            sentence_drugs = {drug : 'drug' + str(i) for i, drug in enumerate(sentence_drugs) if drug is not None}
+            sentence_drugs = list({self.token_to_drug[token] for token in tokens_indexes})  # 3
+            sentence_drugs.sort()
+            sentence_drugs = {drug : 'drug' + str(i) for i, drug in enumerate(sentence_drugs)}
 
-        for token, indexes in tokens_indexes.items():  # 2
-            if token in SPECIAL_TOKENS : continue  # 3
-
-            for index in indexes:  # 4
+        for token, indexes in tokens_indexes.items():  # 4
+            for index in indexes:  # 5
                 sentence_words[index] = 'drug0' if self.embeddings_mode == SENTENCE_EMB else \
                         sentence_drugs[self.token_to_drug[token]]
 

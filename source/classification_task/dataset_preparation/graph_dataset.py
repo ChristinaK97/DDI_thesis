@@ -11,7 +11,7 @@ from torch_geometric.transforms import RandomNodeSplit
 
 from other.CONSTANTS import *
 from source.database_pcg.n4j_pcg.query_neo4j import Query_Neo4j as Neo4j
-from source.classification_task.dataset_preparation.bert_model import WordEmbeddings
+from source.classification_task.dataset_preparation.bert_model_transformers import WordEmbeddings
 
 ZERO_INIT = 0
 
