@@ -209,6 +209,12 @@ class Bert_Dataset():
         2. Απόρριψη των special tokens
         3. Κρατάει τα φάρμακα της πρότασης και αναθέτει σε καθέ ένα έναν αριθμό x
            Ταξινομεί ώστε κάθε φάρμακο να πάρει το ίδιο x σε κάθε εκτέλεση
+           
+            [[CLS], When, methyldopa, and, lithium, are, given, ..., of, lithium, toxicity., [SEP]]
+            [(DDI.e0, methyldopa), (DDI.e1, lithium)] Πρώτη εμφάνιση lithium -> ως e1
+            {methyldopa: drug1, lithium: drug2}
+            [[CLS], When, drug1, and, drug2, are, given, ..., of, drug2, toxicity., [SEP]]
+           
         4. Για κάθε Token, List[indexes] :
            5. Κάνε την αντικατάσταση του με DRUGx (Σε κάθε θέση που το αποτελεί)
         """
@@ -216,15 +222,20 @@ class Bert_Dataset():
         [tokens_indexes.pop(special_token) for special_token in SPECIAL_TOKENS]  # 2
 
         if self.embeddings_mode == TOKEN_EMB:
-            sentence_drugs = list({self.token_to_drug[token] for token in tokens_indexes})  # 3
-            sentence_drugs.sort()
-            sentence_drugs = {drug : 'drug' + str(i) for i, drug in enumerate(sentence_drugs)}
+            sentence_drugs = {}  # 3
+            for token in tokens_indexes:
+                drug = self.token_to_drug[token]
+                if drug not in sentence_drugs or token < sentence_drugs[drug]:
+                    sentence_drugs[drug] = token
+            sentence_drugs = [(token, drug) for drug, token in sentence_drugs.items()]
+
+            sentence_drugs.sort(key=lambda tup: tup[0])
+            sentence_drugs = {drug : 'drug' + str(i + 1) for i, (_, drug) in enumerate(sentence_drugs)}
 
         for token, indexes in tokens_indexes.items():  # 4
             for index in indexes:  # 5
                 sentence_words[index] = 'drug0' if self.embeddings_mode == SENTENCE_EMB else \
                         sentence_drugs[self.token_to_drug[token]]
-
         return sentence_words, named_entities
 
 # ---------------------------------------------------------------------------------------------------------
@@ -308,3 +319,9 @@ class Bert_Dataset():
         a_file = open(f"{PROJECT_PATH}data/models/sentences.pkl", "wb")
         pickle.dump(dict, a_file)
         a_file.close()
+
+
+"""from source.database_pcg.n4j_pcg.query_neo4j import Query_Neo4j
+n4j = Query_Neo4j(train=False)
+s_init = n4j.run_query(n4j.q_collect_sentences())
+Bert_Dataset(sentences_init=s_init, embeddings_mode=TOKEN_EMB)"""
