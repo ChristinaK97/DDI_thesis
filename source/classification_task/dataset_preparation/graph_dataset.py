@@ -1,4 +1,5 @@
 import pickle
+import shutil
 from os import mkdir
 from os.path import exists
 
@@ -11,7 +12,7 @@ from torch_geometric.transforms import RandomNodeSplit
 
 from other.CONSTANTS import *
 from source.database_pcg.n4j_pcg.query_neo4j import Query_Neo4j as Neo4j
-from source.classification_task.dataset_preparation.bert_model_transformers import WordEmbeddings
+from source.classification_task.dataset_preparation.bert_model import WordEmbeddings
 
 ZERO_INIT = 0
 
@@ -35,6 +36,7 @@ class GraphDataset(Dataset):
     def set_files(self):
         files = {}
         path = graph_dataset(self.train)
+        files['raw_path'] = path + '/raw'
         files['processed_path'] = path + '/processed'
         files['saved_dataset'] = f"{files['processed_path']}/dataset.pt"
         files['dataset_info'] = f"{files['processed_path']}/dataset_info.data"
@@ -77,6 +79,8 @@ class GraphDataset(Dataset):
                         'emb_dim': self.emb_dim}
         with open(self.f['dataset_info'], 'wb') as filehandle:
             pickle.dump(dataset_info, filehandle)
+        shutil.rmtree(self.f['raw'], ignore_errors=True)
+
 
     @property
     def processed_file_names(self):

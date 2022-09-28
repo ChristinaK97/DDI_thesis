@@ -5,12 +5,9 @@ import torch
 from torch import tanh
 from torch.nn.functional import leaky_relu, relu
 
-from config import PROJECT_PATH
+from config import MODEL_FILE, MODEL_CONFIG_FILE
 from other.utils import device
 from source.classification_task.gnn_models.gnn_model import GNN
-
-MODEL_FILE   = PROJECT_PATH + 'data/models/classification_model.bin'
-MODEL_CONFIG_FILE = PROJECT_PATH + 'data/models/classification_model_config.json'
 
 
 def ClassificationModel(load_model=False):

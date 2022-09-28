@@ -1,15 +1,15 @@
-from collections import OrderedDict
 from os.path import exists
 
 import torch
 import torch.nn as nn
-from pytorch_pretrained_bert import BertModel, BertConfig
+from config import BERT_MODEL_NAME
+from transformers import BertModel
 from tqdm import tqdm
 
-from other.file_paths import graph_dataset, bert_path
+from other.file_paths import graph_dataset
 from source.classification_task.dataset_preparation.bert_dataset import \
     Bert_Dataset, SPECIAL_TOKENS, SENTENCE_EMB, TOKEN_EMB
-from other.utils import set_seed#, raise_bert_warning
+from other.utils import set_seed
 
 # ------------------------------------------------------------------------------------------
 
@@ -18,12 +18,11 @@ MAX_POOL = 'max'
 SELECTED_POOL = AVG_POOL
 
 
-class BioBert2(nn.Module):
+class Bert(nn.Module):
 
-    def __init__(self, config, state_dict):
+    def __init__(self):
         super().__init__()
-        self.bert = BertModel(config)
-        self.bert.load_state_dict(state_dict, strict=False)
+        self.bert = BertModel.from_pretrained(BERT_MODEL_NAME)
 
     def forward(self, input_data, embeddings_mode):
         """
@@ -53,8 +52,8 @@ class BioBert2(nn.Module):
         """
         with torch.no_grad():
             units_identifiers, input_ids, attention_mask = input_data
-            encoded_layer, _ = self.bert(input_ids=input_ids, attention_mask=attention_mask)
-            s_embeddings = encoded_layer[-1][0]
+            encoded_layer = self.bert(input_ids=input_ids, attention_mask=attention_mask)
+            s_embeddings = encoded_layer.last_hidden_state[0]
 
         return self.named_entities_embeddings(s_embeddings, units_identifiers) if embeddings_mode == TOKEN_EMB \
             else self.sentence_words_embeddings(s_embeddings, units_identifiers)
@@ -72,7 +71,6 @@ class BioBert2(nn.Module):
 
             s = self.pooling([s_embeddings[i] for i in s_ne_indexes[entity]], pool_method=SELECTED_POOL)
             entities_embeddings[entity] = s
-
         return entities_embeddings
 
 
@@ -102,7 +100,7 @@ class BioBert2(nn.Module):
 
 # ======================================================================================================================
 
-class WordEmbeddings2:
+class WordEmbeddings:
 
     def __init__(self, train, sentences_init=None):
         """
@@ -119,15 +117,16 @@ class WordEmbeddings2:
                           Sentence identifier (COLLECTION.d{x}.s{y})]
                 Αν τα αρχεία υπάρχουν, δεν χρειάζεται το όρισμα
         """
-        self.sentence_emb_file = WordEmbeddings2.embeddings_file_path(train, SENTENCE_EMB)
-        self.token_emb_file    = WordEmbeddings2.embeddings_file_path(train, TOKEN_EMB)
+        self.sentence_emb_file = WordEmbeddings.embeddings_file_path(train, SENTENCE_EMB)
+        self.token_emb_file    = WordEmbeddings.embeddings_file_path(train, TOKEN_EMB)
         self.files_exist       = exists(self.sentence_emb_file) and exists(self.token_emb_file)
         if not self.files_exist:
             if sentences_init is None:
                 raise Exception('Files not found and sentence_init arg eq to None')
-            else:
-                self.sentences_init = sentences_init
-            self.model = self._init_model()
+
+            self.sentences_init = sentences_init
+            set_seed()
+            self.model = Bert().eval()
 
 
 
@@ -137,28 +136,6 @@ class WordEmbeddings2:
             ('sentence' if embeddings_mode == SENTENCE_EMB else 'token')\
             + '_embeddings.pt'
 
-
-    def _init_model(self):
-        """
-        Φόρτωση του μοντέλου biobert από τα αρχεία
-        Πηγή: https://github.com/perkdrew/advanced-nlp/blob/master/BioBERT/ner/biobert_ner.ipynb
-        :return: Το μοντέλο σε eval mode προκειμένου να εφαρμοστεί για υπολογισμό embeddings
-        """
-        if not exists(bert_path):
-            pass
-            #raise_bert_warning('Saved processed graph dataset not found.')
-        set_seed()
-        config = BertConfig.from_json_file(bert_path + 'config.json')
-        tmp_d = torch.load(bert_path + 'pytorch_model.bin', map_location='cpu')
-        state_dict = OrderedDict()
-
-        for i in list(tmp_d.keys())[:199]:
-            x = i
-            if i.find('bert') > -1:
-                x = '.'.join(i.split('.')[1:])
-            state_dict[x] = tmp_d[i]
-
-        return BioBert2(config, state_dict).eval()
 
 
     def word_embeddings(self):
@@ -170,7 +147,7 @@ class WordEmbeddings2:
                       value = word embedding την οντότητας}
         """
         embeddings = {}
-        for (file, embeddings_mode) in [(self.sentence_emb_file, SENTENCE_EMB), (self.token_emb_file, TOKEN_EMB)]:
+        for (file, embeddings_mode) in [(self.sentence_emb_file, SENTENCE_EMB),(self.token_emb_file, TOKEN_EMB)]:
 
             embeddings[embeddings_mode] = \
                         torch.load(file) if self.files_exist \
@@ -182,7 +159,7 @@ class WordEmbeddings2:
     def _run_bert(self, embeddings_file, embeddings_mode):
         print('BERT Inference...')
         embeddings = {}
-        data = Bert_Dataset(self.sentences_init, bert_path, embeddings_mode)
+        data = Bert_Dataset(self.sentences_init, embeddings_mode)
 
         for i in tqdm(range(len(data))):
             input_data = data.get(i)
@@ -194,6 +171,5 @@ class WordEmbeddings2:
         torch.save(embeddings, embeddings_file)
 
         return embeddings
-
 
 

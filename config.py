@@ -11,7 +11,6 @@ PROJECT_PATH = 'C:/Users/xristina/Desktop/progr/Python/DDI_thesis/'
 # ή αν θα χρησιμοποιήσει τα υπάρχοντα ή θα προσπαθήσει να τα κατεβάσει -> False
 RESET_SYNONYMS_DB = False
 
-
 # ================================ NEO4j =============================================
 
 # Το path όπου έχει τοποθετηθεί ο φάκελος του neo4j
@@ -30,10 +29,26 @@ NEO4J_RESET = True
 NEO4J_TRAIN_DB = 'ddidb.train'
 NEO4J_TEST_DB = 'ddidb.test'
 
-
 # ============================== Εκπαίδευση μοντέλου ===================================
 
-BERT_MODEL_NAME = 'monologg/biobert_v1.1_pubmed'
+# --------------------------------- Επιλογή BERT --------------------------------------
+
+bert_base = 'bert-base-cased'
+biobert_base = 'monologg/biobert_v1.1_pubmed'
+biobert_large = 'dmis-lab/biobert-large-cased-v1.1'
+scibert = 'allenai/scibert_scivocab_cased'
+
+cache_path = 'C:/Users/xristina/.cache/huggingface/transformers/aligned/aligned-lm/'
+
+biobert_lbl = 'biobert/lbl'
+biobert_par = 'biobert/par'
+biobert_lbl_monologg_10epochs = 'biobert/lbl-monologg-10epochs'
+
+scibert_lbl_3ep = 'scibert/lbl/3epochs'
+scibert_lbl_10ep = 'scibert/lbl/10epochs'
+scibert_par = 'scibert/par'
+
+BERT_MODEL_NAME = cache_path + scibert_par
 
 # ----------------------------- Παράμετροι εκπαίδευσης ---------------------------------
 
@@ -60,15 +75,17 @@ PRINT_MISCLS = True
 # Για evaluation ενός αποθηκευμένου μοντέλου στο test set -> 'INFERENCE'
 # (αν δε βρεθεί αποθηκευμένο μοντέλο η εκπαίδευση θα εκτελεστεί και θα αποθηκευτεί το μοντέλο)
 # Ή για εκπαίδευση μοντέλου -> 'TRAINING'
-MODE = 'INFERENCE'
+MODE = 'TRAINING'
+MODEL_FILE   = PROJECT_PATH + 'data/models/classification_model.bin'
+MODEL_CONFIG_FILE = PROJECT_PATH + 'data/models/classification_model_config.json'
 
 # Πλήθος νευρώνων σε κάθε επίπεδο προεπεξεργασίας
 # πχ [256] ένα επίπεδο προεπεξεργασίας με 256 νευρώνες
 #    None : κανένα επίπεδο προεπεξεργασίας
-MLP_PREPROCESSING_DIM = None
+MLP_PREPROCESSING_DIM = [256]
 
 # Όμοια για μετεπεξεργασίας
-MLP_PROSTPROCESSING_DIM = [128, 64]
+MLP_POSTPROCESSING_DIM = [128, 64]
 
 # Τελεστής GNN που θα εφαρμοστεί πχ 'SAGEConv', 'GINConv', 'GATConv'
 GNN_TYPE = 'GINConv'
@@ -78,5 +95,3 @@ HIDDEN_CHANNELS = 256
 
 # Συνάρτηση ενεργοποίησης πχ 'relu', 'leaky_relu', 'tanh'
 ACTIVATION_FUNC = 'relu'
-
-

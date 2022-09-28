@@ -14,7 +14,7 @@ from other.utils import set_seed, device
 from source.classification_task.dataset_preparation.graph_dataset import GraphDataset
 from source.classification_task.gnn_models.analyse_misclassified import run_miscls
 from source.classification_task.gnn_models.load_classification_model import ClassificationModel, \
-    MODEL_CONFIG_FILE, MODEL_FILE, files_found
+    files_found
 from config import *
 
 TRAINING = 1
@@ -100,7 +100,7 @@ class TrainClassificationModel:
             'edge_types': self.dataset.graph.metadata()[1],
 
             'preproc': MLP_PREPROCESSING_DIM,
-            'postproc': MLP_PROSTPROCESSING_DIM,
+            'postproc': MLP_POSTPROCESSING_DIM,
             'n_conv_layers': 1,
             'hidden_channels': HIDDEN_CHANNELS,
             'conv_type': GNN_TYPE,

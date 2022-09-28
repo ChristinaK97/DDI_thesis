@@ -1,11 +1,9 @@
-import pickle
-
-import pandas as pd
 import torch
-from config import PROJECT_PATH, BERT_MODEL_NAME
-# from pytorch_pretrained_bert import BertTokenizer
+import pickle
+import pandas as pd
 from transformers import BertTokenizer
 
+from config import PROJECT_PATH, BERT_MODEL_NAME
 from other.CONSTANTS import *
 
 SENTENCE_EMB = 1
@@ -34,8 +32,7 @@ class Bert_Dataset():
         """
         self.embeddings_mode = embeddings_mode
 
-        # self.tokenizer = BertTokenizer(vocab_file=bert_path + 'vocab.txt', do_lower_case=False)  # 1
-        self.tokenizer  = BertTokenizer.from_pretrained(BERT_MODEL_NAME)                              # 1
+        self.tokenizer  = BertTokenizer.from_pretrained(BERT_MODEL_NAME)                         # 1
         self.sentences = pd.Series([s[0][1:-1] for s in sentences_init])                         # 2
         self.sentences_identifiers = pd.Series([s[2] for s in sentences_init])                   # 3
         self.named_entities = [sorted(s[1], key=lambda i: i[START]) for s in sentences_init]     # 4
